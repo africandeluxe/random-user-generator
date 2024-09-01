@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import UserCard from './components/UserCard';
+import UserCard from '../UserCard';
 
 interface User {
   name: {
@@ -16,6 +16,12 @@ interface User {
   picture: {
     large: string;
   };
+}
+
+interface State {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
 }
 
 const Container = styled.div`
@@ -48,28 +54,42 @@ const Loading = styled.p`
 `;
 
 const MainApp: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [state, setState] = useState<State>({
+    user: null,
+    loading: true,
+    error: null,
+  });
 
   const fetchUser = async () => {
-    setLoading(true);
+    setState({ ...state, loading: true, error: null });
     try {
       const response = await fetch('https://randomuser.me/api/');
       const data = await response.json();
-      setUser(data.results[0]);
+      setState({ ...state, user: data.results[0], loading: false });
     } catch (error) {
-      console.error('Error fetching user:', error);
+      setState({ ...state, error: 'Failed to fetch user', loading: false });
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    fetchUser();
+    const savedUser = localStorage.getItem('lastUser');
+    if (savedUser) {
+      setState({ ...state, user: JSON.parse(savedUser), loading: false });
+    } else {
+      fetchUser();
+    }
   }, []);
+
+  useEffect(() => {
+    if (state.user) {
+      localStorage.setItem('lastUser', JSON.stringify(state.user));
+    }
+  }, [state.user]);
 
   return (
     <Container>
-      {loading ? <Loading>Loading...</Loading> : user && <UserCard user={user} />}
+      {state.loading ? <Loading>Loading...</Loading> : state.user && <UserCard user={state.user} />}
+      {state.error && <p>{state.error}</p>}
       <Button onClick={fetchUser}>Get New User</Button>
     </Container>
   );
