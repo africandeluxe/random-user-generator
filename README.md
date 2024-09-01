@@ -3,6 +3,7 @@ An application that fetches and displays random user profiles. Users can click a
 
 **API to Use: Random User API**
 <br/>
+<br/>
 **Features:** <br/>
 - Fetched and displaying random user information including name, photo, email, phone, and location.
 - A Button to generate and display a new random user.
